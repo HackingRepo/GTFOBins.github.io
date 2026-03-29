@@ -9,7 +9,7 @@ permissions:
   id-token: write
 jobs:
   Build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.046
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
